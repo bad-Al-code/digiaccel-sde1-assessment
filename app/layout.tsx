@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import type { ReactNode } from 'react';
 import { Poppins } from 'next/font/google';
 import { QueryProvider } from '@/client/queries/QueryProvider';
 import './globals.css';
@@ -26,7 +27,7 @@ export const viewport: Viewport = {
   themeColor: '#4566ec',
 };
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${poppins.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">

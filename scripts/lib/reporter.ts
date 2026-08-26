@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 export class Reporter {
   private passed = 0;
+  private skipped = 0;
   private readonly failures: string[] = [];
   private currentGroup = '';
 
@@ -62,10 +63,17 @@ export class Reporter {
     }
   }
 
+  public skip(label: string, reason: string): void {
+    this.skipped += 1;
+    console.log(`    skip  ${label}`);
+    console.log(`          ${reason}`);
+  }
+
   public summary(title: string): void {
     const total = this.passed + this.failures.length;
+    const skippedNote = this.skipped > 0 ? `, ${this.skipped} skipped` : '';
     console.log(`\n${'-'.repeat(64)}`);
-    console.log(`${title}: ${this.passed}/${total} passed`);
+    console.log(`${title}: ${this.passed}/${total} passed${skippedNote}`);
 
     if (this.failures.length > 0) {
       console.log(`\n${this.failures.length} failure(s):`);

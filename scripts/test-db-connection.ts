@@ -172,12 +172,21 @@ async function runParent(): Promise<void> {
   reporter.ok('error leaks no connection string', unreachable.leaksNoCredentials === true);
 
   reporter.group('Bad credentials');
-  const badAuth = await spawnScenario('badauth', {
-    MONGODB_URI: uri.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:wrongpassword@'),
-    MONGODB_DB_NAME: dbName,
-  });
-  reporter.ok('names credentials or encoding', badAuth.mentionsCredentials === true);
-  reporter.ok('error leaks no password', badAuth.leaksNoPassword === true);
+  const hasCredentials = /:\/\/[^:/]+:[^@]+@/.test(uri);
+
+  if (!hasCredentials) {
+    reporter.skip(
+      'names credentials or encoding',
+      'the target MongoDB has no authentication, so a wrong password cannot be simulated',
+    );
+  } else {
+    const badAuth = await spawnScenario('badauth', {
+      MONGODB_URI: uri.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:wrongpassword@'),
+      MONGODB_DB_NAME: dbName,
+    });
+    reporter.ok('names credentials or encoding', badAuth.mentionsCredentials === true);
+    reporter.ok('error leaks no password', badAuth.leaksNoPassword === true);
+  }
 
   reporter.group('bufferCommands disabled');
   const buffering = await spawnScenario('buffering', {
