@@ -18,20 +18,20 @@ export function Checkbox({ label, id, checked, className = '', ref, ...props }: 
 
   return (
     <span
-      className={['relative inline-flex size-11 items-center justify-center', className].join(' ')}
+      className={['relative inline-flex size-9 items-center justify-center', className].join(' ')}
     >
       <input
         ref={ref}
         id={inputId}
         type="checkbox"
         checked={checked}
-        className="peer absolute inset-0 cursor-pointer opacity-0"
+        className="peer absolute top-1/2 left-1/2 size-6 -translate-x-1/2 -translate-y-1/2 cursor-pointer opacity-0"
         aria-label={label}
         {...props}
       />
       <span
         aria-hidden="true"
-        className="border-primary bg-surface peer-focus-visible:ring-primary pointer-events-none flex size-[22px] items-center justify-center rounded-sm border-[1.5px] transition-colors duration-150 peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2"
+        className="border-primary bg-surface peer-focus-visible:ring-primary pointer-events-none flex size-[22px] items-center justify-center rounded-[6px] border-[1.5px] transition-colors duration-150 peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2"
       >
         <CheckIcon
           strokeWidth={2.5}

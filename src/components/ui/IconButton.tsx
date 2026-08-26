@@ -11,7 +11,7 @@ interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 
 
 const TONE_CLASSES: Record<Tone, string> = {
   neutral: 'text-ink-muted hover:text-ink active:text-ink',
-  destructive: 'text-ink-muted hover:text-pending-glyph active:text-pending-glyph',
+  destructive: 'text-pending-glyph hover:bg-pending-surface active:bg-pending-surface',
 };
 
 export function IconButton({
@@ -29,7 +29,7 @@ export function IconButton({
       type={type}
       aria-label={label}
       className={[
-        'inline-flex size-11 shrink-0 items-center justify-center rounded-md',
+        'relative inline-flex size-11 shrink-0 items-center justify-center rounded-md',
         'transition-colors duration-150 outline-none',
         'focus-visible:ring-primary focus-visible:ring-2',
         'disabled:cursor-not-allowed disabled:opacity-50',
