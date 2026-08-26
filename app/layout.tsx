@@ -4,9 +4,6 @@ import { Poppins } from 'next/font/google';
 import { QueryProvider } from '@/client/queries/QueryProvider';
 import './globals.css';
 
-/**
- * The Figma uses a geometric sans with a single-storey `g` - Poppins.
- */
 const poppins = Poppins({
   variable: '--font-poppins',
   subsets: ['latin'],

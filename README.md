@@ -95,5 +95,3 @@ Required repository secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`,
 
 Set every environment variable in the Vercel dashboard per environment, and
 point Preview at a separate database from Production.
-
-
