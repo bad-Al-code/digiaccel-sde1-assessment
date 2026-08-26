@@ -6,7 +6,6 @@ export interface CreateUserInput {
   readonly passwordHash: string;
 }
 
-
 export interface UserWithPassword extends User {
   readonly passwordHash: string;
 }

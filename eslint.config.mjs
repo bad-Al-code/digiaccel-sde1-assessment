@@ -3,8 +3,6 @@ import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
 import prettier from 'eslint-config-prettier';
 
-/**
- */
 const eslintConfig = defineConfig([
   globalIgnores([
     '.next/**',
@@ -21,18 +19,15 @@ const eslintConfig = defineConfig([
     name: 'project/conventions',
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
-      // Ground rule 1: no `any`.
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
-      // Keeps type-only imports erased at build time.
       '@typescript-eslint/consistent-type-imports': [
         'error',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
       ],
-      // Ground rule 4: every class member states its visibility.
       '@typescript-eslint/explicit-member-accessibility': [
         'error',
         { accessibility: 'explicit', overrides: { constructors: 'no-public' } },
@@ -44,12 +39,9 @@ const eslintConfig = defineConfig([
     },
   },
 
-  /**
-   * These make the "forbidden imports" table executable rather than advisory.
-   */
   {
-    name: 'project/layer-boundaries/services-and-controllers',
-    files: ['src/server/modules/**/*.service.ts', 'src/server/modules/**/*.controller.ts'],
+    name: 'project/layer-boundaries/services',
+    files: ['src/server/modules/**/*.service.ts', 'src/server/modules/**/services/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -57,19 +49,42 @@ const eslintConfig = defineConfig([
           paths: [
             {
               name: 'mongoose',
-              message:
-                'Services and controllers must not touch the ODM. Go through a repository (D-05).',
-            },
-            {
-              name: 'next/server',
-              message:
-                'Services and controllers must stay transport-agnostic. HTTP belongs in the route composer.',
+              message: 'Services must not touch the ODM. Go through a repository (D-05).',
             },
           ],
           patterns: [
             {
               group: ['**/database/models/*', '@/server/database/models/*'],
               message: 'Models are reachable only from repositories (D-05).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    name: 'project/layer-boundaries/controllers',
+    files: ['src/server/modules/**/*.controller.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'mongoose',
+              message: 'Controllers must not touch the ODM. Call a service (D-05).',
+            },
+          ],
+          patterns: [
+            {
+              group: [
+                '**/database/models/*',
+                '@/server/database/models/*',
+                '**/*.repository',
+                '@/server/modules/**/*.repository',
+              ],
+              message: 'Controllers call services, never repositories directly.',
             },
           ],
         },
@@ -95,7 +110,6 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Test scripts legitimately reach into any layer and print to stdout.
   {
     name: 'project/scripts',
     files: ['scripts/**/*.ts'],
@@ -105,7 +119,6 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Must stay last: turns off every rule Prettier owns.
   prettier,
 ]);
 

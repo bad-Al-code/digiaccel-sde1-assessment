@@ -75,21 +75,34 @@ export class RateLimiter {
   }
 
   private resolveClientIp(request: NextRequest): string {
-    const forwarded = request.headers.get('x-forwarded-for');
+    const candidate = this.readForwardedIp(request);
 
-    if (forwarded) {
-      const first = forwarded.split(',')[0]?.trim();
-      if (first) {
-        return this.normaliseIp(first);
-      }
-    }
-
-    const realIp = request.headers.get('x-real-ip');
-    if (realIp) {
-      return this.normaliseIp(realIp);
+    if (candidate && !(!isProduction && this.isLoopback(candidate))) {
+      return this.normaliseIp(candidate);
     }
 
     return isProduction ? 'unknown' : `local:${Math.random()}`;
+  }
+
+  private readForwardedIp(request: NextRequest): string | null {
+    const first = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+
+    if (first) {
+      return first;
+    }
+
+    return request.headers.get('x-real-ip')?.trim() ?? null;
+  }
+
+  private isLoopback(ip: string): boolean {
+    const normalised = this.normaliseIp(ip).replace(/^\[|\]$/g, '');
+
+    return (
+      normalised === '::1' ||
+      normalised === 'localhost' ||
+      normalised === '::ffff:127.0.0.1' ||
+      normalised.startsWith('127.')
+    );
   }
 
   private normaliseIp(value: string): string {

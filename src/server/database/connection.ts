@@ -18,6 +18,8 @@ const cache: ConnectionCache = (globalForMongo.__todoMongoCache ??= {
 
 let listenersBound = false;
 
+mongoose.set('bufferCommands', false);
+
 export class DatabaseConnection {
   public async connect(): Promise<Mongoose> {
     if (cache.connection) {
@@ -92,9 +94,10 @@ export class DatabaseConnection {
   private describeFailure(error: unknown): Error {
     const message = error instanceof Error ? error.message : String(error);
 
-    if (message.includes('ServerSelection') || message.includes('server selection')) {
+    if (this.looksUnreachable(message)) {
       return new Error(
-        'Could not reach MongoDB. Check the Atlas IP allowlist covers this host, and that the cluster is not paused.',
+        'Could not reach MongoDB. Check the Atlas IP allowlist covers this host, and that the cluster is not paused. ' +
+          `Underlying cause: ${message}`,
       );
     }
 
@@ -105,6 +108,20 @@ export class DatabaseConnection {
     }
 
     return error instanceof Error ? error : new Error(message);
+  }
+
+  private looksUnreachable(message: string): boolean {
+    return [
+      'ServerSelection',
+      'server selection',
+      'timed out',
+      'ETIMEDOUT',
+      'ECONNREFUSED',
+      'ENOTFOUND',
+      'EHOSTUNREACH',
+      'ENETUNREACH',
+      'connection closed',
+    ].some((pattern) => message.toLowerCase().includes(pattern.toLowerCase()));
   }
 }
 
