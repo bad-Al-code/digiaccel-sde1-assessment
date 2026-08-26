@@ -1,26 +1,87 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme {
+  /* ---- Brand ---------------------------------------------------------- */
+  --color-primary: #4566ec; /* panels, FAB, selected chip, buttons, links */
+  --color-primary-strong: #253c98; /* weekly progress fill */
+  --color-primary-track: #dadaff; /* weekly progress track */
+  --color-primary-soft: #5677ff; /* onboarding zig-zag overlay */
+
+  /* ---- Status surfaces ------------------------------------------------ */
+  --color-complete-surface: #eff2ff;
+  --color-complete-accent: #99adff;
+  --color-complete-glyph: #394d9f;
+  --color-pending-surface: #ffe6e7;
+  --color-pending-accent: #ffb1b4;
+  --color-pending-glyph: #cb555a;
+
+  /* ---- Neutrals ------------------------------------------------------- */
+  --color-background: #fdfdff;
+  --color-surface: #ffffff;
+  --color-line: #e6e6e6; /* search field border, row dividers */
+  --color-line-soft: #eaeaea; /* sheet input borders */
+  --color-ink: #171717; /* headings, task titles, input values */
+  --color-ink-soft: #7e7e80; /* body copy, "This Week" */
+  --color-ink-muted: #a4a4a5; /* field labels, placeholders, inactive days */
+  --color-scrim: rgb(0 0 0 / 0.25); /* measured: #fff reads #bebebf through it */
+
+  /* ---- Priority (our addition, derived from the palette above) --------- */
+  --color-priority-high: #cb555a;
+  --color-priority-medium: #4566ec;
+  --color-priority-low: #7e7e80;
+
+  /* ---- Type scale ----------------------------------------------------- */
+  --text-display: 1.625rem; /* 26px - "Manage What To Do" */
+  --text-display--line-height: 1.25;
+  --text-metric: 1.375rem; /* 22px - "50", "08" */
+  --text-metric--line-height: 1.25;
+  --text-sheet-title: 1.25rem; /* 20px - "Add New Task" */
+  --text-sheet-title--line-height: 1.3;
+  --text-section: 1.125rem; /* 18px - "Weekly Progress" */
+  --text-section--line-height: 1.3;
+  --text-button: 1rem; /* 16px - "Get Started" */
+  --text-button--line-height: 1.5;
+  --text-day-number: 0.9375rem; /* 15px - "12" */
+  --text-day-number--line-height: 1.25;
+  --text-task: 0.875rem; /* 14px - task titles, input values */
+  --text-task--line-height: 1.5;
+  --text-card-label: 0.8125rem; /* 13px - "Task Complete" */
+  --text-card-label--line-height: 1.4;
+  --text-body: 0.8125rem; /* 13px - onboarding subtitle */
+  --text-body--line-height: 1.5;
+  --text-field-label: 0.75rem; /* 12px - "Task title" */
+  --text-field-label--line-height: 1.4;
+  --text-caption: 0.6875rem; /* 11px - "This Week", "Sun" */
+  --text-caption--line-height: 1.4;
+
+  /* ---- Radius (overrides Tailwind defaults with our design language) --- */
+  --radius-sm: 8px; /* sheet inputs, primary buttons */
+  --radius-md: 10px; /* search field, day chips */
+  --radius-lg: 12px; /* summary cards, icon tiles */
+  --radius-xl: 20px; /* bottom sheet top corners only */
+
+  /* ---- Elevation (the design is otherwise flat - add nothing else) ----- */
+  --shadow-fab: 0 8px 24px rgb(69 102 236 / 0.32);
+  --shadow-sheet: 0 -4px 24px rgb(0 0 0 / 0.08);
+
+  /* ---- Layout --------------------------------------------------------- */
+  --container-app: 26.875rem; /* 430px - mobile column cap above 480px */
+
+  /* ---- Font ----------------------------------------------------------- */
+  --font-sans:
+    var(--font-poppins), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  /* Removes the grey flash on tap - very visible on a mobile-first UI. */
+  -webkit-tap-highlight-color: transparent;
+  /* Stops the page rubber-banding behind the bottom sheet. */
+  overscroll-behavior-y: none;
 }
