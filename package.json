@@ -11,15 +11,19 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test:db && npm run test:auth && npm run test:tasks && npm run test:weeks && npm run test:search && npm run test:health",
+    "test": "npm run test:db && npm run test:auth && npm run test:guest && npm run test:tasks && npm run test:weeks && npm run test:search && npm run test:health",
     "test:db": "tsx scripts/test-db-connection.ts",
     "test:auth": "tsx scripts/test-auth-flow.ts",
     "test:tasks": "tsx scripts/test-task-crud.ts",
     "test:weeks": "tsx scripts/test-week-math.ts",
     "test:search": "tsx scripts/test-search.ts",
-    "test:health": "tsx scripts/test-health.ts"
+    "test:health": "tsx scripts/test-health.ts",
+    "test:guest": "tsx scripts/test-guest.ts",
+    "db:sync-indexes": "tsx scripts/sync-indexes.ts"
   },
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.2.0",
+    "@tanstack/react-query": "^5.102.6",
     "bcryptjs": "^3.0.3",
     "date-fns": "^4.4.0",
     "jsonwebtoken": "^9.0.3",

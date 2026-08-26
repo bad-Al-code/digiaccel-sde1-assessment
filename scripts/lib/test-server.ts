@@ -36,7 +36,17 @@ export async function startTestServer(
     }
 
     if (child.exitCode !== null) {
-      throw new Error(`Server exited early (code ${child.exitCode}):\n${logs.join('')}`);
+      const output = logs.join('');
+
+      if (output.includes('Another next dev server is already running')) {
+        const pid = /PID:\s*(\d+)/.exec(output)?.[1] ?? 'unknown';
+        throw new Error(
+          `Next refuses to start a second dev server while one is running (PID ${pid}).\n` +
+            `Stop your dev server and re-run the tests, for example: kill ${pid}`,
+        );
+      }
+
+      throw new Error(`Server exited early (code ${child.exitCode}):\n${output}`);
     }
 
     await delay(400);
