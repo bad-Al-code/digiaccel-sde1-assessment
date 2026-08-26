@@ -43,7 +43,7 @@ async function runChild(scenario: string): Promise<void> {
         cacheClearedForRetry: secondDurationMs > 500,
         bothMentionAllowlist: /allowlist/i.test(firstError) && /allowlist/i.test(secondError),
         mentionsAllowlist: /allowlist|paused/i.test(firstError),
-        leaksNoCredentials: !/REDACTED|REDACTED|mongodb\+srv/i.test(firstError),
+        leaksNoCredentials: !containsSecret(firstError),
       });
       break;
     }
@@ -54,7 +54,7 @@ async function runChild(scenario: string): Promise<void> {
       report({
         message,
         mentionsCredentials: /credential|percent-encoded/i.test(message),
-        leaksNoPassword: !/REDACTED/i.test(message),
+        leaksNoPassword: !containsSecret(message),
       });
       break;
     }
@@ -75,6 +75,20 @@ async function runChild(scenario: string): Promise<void> {
     default:
       report({ error: `unknown scenario ${scenario}` });
   }
+}
+
+/**
+ * Reads the live credentials from the environment rather than hardcoding them,
+ * so no fragment of a real secret is ever committed.
+ */
+function containsSecret(message: string): boolean {
+  const uri = process.env.MONGODB_URI ?? '';
+  const credentials = /:\/\/([^:]+):([^@]+)@/.exec(uri);
+  const candidates = [credentials?.[1], credentials?.[2], 'mongodb+srv'].filter(
+    (value): value is string => typeof value === 'string' && value.length > 3,
+  );
+
+  return candidates.some((value) => message.toLowerCase().includes(value.toLowerCase()));
 }
 
 function report(payload: Record<string, unknown>): void {

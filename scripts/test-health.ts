@@ -59,8 +59,18 @@ class StubCheck implements IHealthCheck {
   }
 }
 
+function containsSecret(payload: string): boolean {
+  const uri = process.env.MONGODB_URI ?? '';
+  const credentials = /:\/\/([^:]+):([^@]+)@/.exec(uri);
+  const candidates = [credentials?.[1], credentials?.[2], 'mongodb+srv'].filter(
+    (value): value is string => typeof value === 'string' && value.length > 3,
+  );
+
+  return candidates.some((value) => payload.toLowerCase().includes(value.toLowerCase()));
+}
+
 async function main(): Promise<void> {
-  const { uri, dbName } = loadTestEnv();
+  const { dbName } = loadTestEnv();
   const reporter = new Reporter();
 
   console.log('\nHealth endpoints and registry');
@@ -72,7 +82,7 @@ async function main(): Promise<void> {
 
   try {
     await runLiveness(reporter, healthy.baseUrl);
-    await runReadinessHealthy(reporter, healthy.baseUrl, uri);
+    await runReadinessHealthy(reporter, healthy.baseUrl);
   } finally {
     await healthy.stop();
   }
@@ -177,14 +187,10 @@ async function runLiveness(reporter: Reporter, baseUrl: string): Promise<void> {
   reporter.equal('sets Cache-Control no-store', response.headers.get('cache-control'), 'no-store');
   reporter.ok(`responds quickly (${elapsed}ms)`, elapsed < 2_000);
   reporter.ok('carries no per-check detail', response.body.data?.checks === undefined);
-  reporter.ok('leaks no connection string', !/mongodb\+srv|REDACTED/i.test(response.raw));
+  reporter.ok('leaks no connection string', !containsSecret(response.raw));
 }
 
-async function runReadinessHealthy(
-  reporter: Reporter,
-  baseUrl: string,
-  uri: string,
-): Promise<void> {
+async function runReadinessHealthy(reporter: Reporter, baseUrl: string): Promise<void> {
   reporter.group('Readiness when healthy');
   const client = new TestClient(baseUrl);
 
@@ -211,8 +217,7 @@ async function runReadinessHealthy(
   reporter.ok('runtime reports node version', typeof runtime?.detail?.nodeVersion === 'string');
   reporter.ok('runtime reports heap usage', typeof runtime?.detail?.heapUsedMb === 'number');
 
-  const password = uri.split(':')[2]?.split('@')[0] ?? 'nothing';
-  reporter.ok('no password anywhere in the payload', !response.raw.includes(password));
+  reporter.ok('no password anywhere in the payload', !containsSecret(response.raw));
   reporter.ok('no connection string in the payload', !/mongodb\+srv/i.test(response.raw));
   reporter.ok('no JWT secret in the payload', !/JWT_|SECRET/i.test(response.raw));
 
@@ -244,10 +249,7 @@ async function runReadinessUnhealthy(reporter: Reporter, baseUrl: string): Promi
   reporter.equal('code is SERVICE_UNAVAILABLE', readiness.body.code, 'SERVICE_UNAVAILABLE');
   reporter.ok('the failing dependency is named', /mongodb/i.test(readiness.body.message ?? ''));
   reporter.ok(`bounded response time (${elapsed}ms)`, elapsed < 15_000);
-  reporter.ok(
-    'no credentials in the failure payload',
-    !/REDACTED|mongodb\+srv/i.test(readiness.raw),
-  );
+  reporter.ok('no credentials in the failure payload', !containsSecret(readiness.raw));
   reporter.ok('no stack trace in the failure payload', !/\bat \w+ \(/.test(readiness.raw));
 
   const secondLiveness = await client.get<Envelope<Report>>('/api/health');
