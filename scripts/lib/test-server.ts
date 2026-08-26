@@ -5,7 +5,11 @@ export interface RunningServer {
   stop(): Promise<void>;
 }
 
-export async function startTestServer(dbName: string, port = 3311): Promise<RunningServer> {
+export async function startTestServer(
+  dbName: string,
+  port = 3311,
+  envOverrides: Record<string, string> = {},
+): Promise<RunningServer> {
   if (await isReachable(`http://localhost:${port}`)) {
     throw new Error(
       `Port ${port} is already serving. Stop it first; reusing a foreign server invalidates the run.`,
@@ -13,7 +17,7 @@ export async function startTestServer(dbName: string, port = 3311): Promise<Runn
   }
 
   const child: ChildProcess = spawn('npx', ['next', 'dev', '--port', String(port)], {
-    env: { ...process.env, MONGODB_DB_NAME: dbName, NODE_ENV: 'development' },
+    env: { ...process.env, MONGODB_DB_NAME: dbName, NODE_ENV: 'development', ...envOverrides },
     stdio: ['ignore', 'pipe', 'pipe'],
     detached: true,
   });

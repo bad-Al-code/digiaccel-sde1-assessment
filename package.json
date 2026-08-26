@@ -11,12 +11,13 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test:db && npm run test:auth && npm run test:tasks && npm run test:weeks && npm run test:search",
+    "test": "npm run test:db && npm run test:auth && npm run test:tasks && npm run test:weeks && npm run test:search && npm run test:health",
     "test:db": "tsx scripts/test-db-connection.ts",
     "test:auth": "tsx scripts/test-auth-flow.ts",
     "test:tasks": "tsx scripts/test-task-crud.ts",
     "test:weeks": "tsx scripts/test-week-math.ts",
-    "test:search": "tsx scripts/test-search.ts"
+    "test:search": "tsx scripts/test-search.ts",
+    "test:health": "tsx scripts/test-health.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
