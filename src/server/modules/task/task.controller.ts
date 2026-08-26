@@ -12,7 +12,7 @@ import type {
   UpdateTaskBody,
   WeeksQuery,
 } from './task.validator';
-import type { TaskPriority, TaskStatus } from '@/types';
+import { GUEST_TASK_LIMIT, type TaskPriority, type TaskStatus } from '@/types';
 
 export class TaskController {
   constructor(
@@ -35,7 +35,8 @@ export class TaskController {
       {
         ...(query.weekStart ? { weekStart: new Date(query.weekStart) } : {}),
         ...(query.date ? { date: new Date(query.date) } : {}),
-        ...(!query.weekStart && !query.date ? { weekStart: new Date() } : {}),
+        ...(query.from && query.to ? { from: new Date(query.from), to: new Date(query.to) } : {}),
+        ...(!query.weekStart && !query.date && !query.from ? { weekStart: new Date() } : {}),
         ...(query.status ? { status: query.status as TaskStatus } : {}),
         ...(query.priority ? { priority: query.priority as TaskPriority } : {}),
       },
@@ -46,13 +47,19 @@ export class TaskController {
   }
 
   public async create(user: AuthenticatedUser, body: CreateTaskBody): Promise<NextResponse> {
-    const task = await this.taskService.createTask(user.id, {
-      title: body.title,
-      description: body.description ?? null,
-      startAt: new Date(body.startAt),
-      endAt: body.endAt ? new Date(body.endAt) : null,
-      priority: (body.priority ?? null) as TaskPriority | null,
-    });
+    const guestLimit = user.isGuest ? { maxTasks: GUEST_TASK_LIMIT } : undefined;
+
+    const task = await this.taskService.createTask(
+      user.id,
+      {
+        title: body.title,
+        description: body.description ?? null,
+        startAt: new Date(body.startAt),
+        endAt: body.endAt ? new Date(body.endAt) : null,
+        priority: (body.priority ?? null) as TaskPriority | null,
+      },
+      guestLimit,
+    );
 
     return ApiResponse.created(task);
   }
@@ -80,7 +87,7 @@ export class TaskController {
   }
 
   public async remove(user: AuthenticatedUser, taskId: string): Promise<NextResponse> {
-    await this.taskService.deleteTask(user.id, taskId);
+    await this.taskService.deleteTask(user.id, taskId, user.isGuest);
 
     return ApiResponse.ok(null, { message: 'Task deleted' });
   }

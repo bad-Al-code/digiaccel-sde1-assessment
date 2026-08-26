@@ -128,6 +128,14 @@ export class TaskRepository extends BaseRepository<TaskDocument, Task> implement
     return (result.deletedCount ?? 0) > 0;
   }
 
+  public async countByOwner(ownerId: string): Promise<number> {
+    if (!this.isValidObjectId(ownerId)) {
+      return 0;
+    }
+
+    return this.model.countDocuments(this.ownerFilter(ownerId));
+  }
+
   public async countByStatus(ownerId: string, weekStart: Date): Promise<StatusCounts> {
     const rows = await this.model.aggregate<WeekGroupRow>([
       { $match: { ...this.ownerFilter(ownerId), weekStart: getWeekStart(weekStart) } },
@@ -192,6 +200,10 @@ export class TaskRepository extends BaseRepository<TaskDocument, Task> implement
 
     if (filters.weekStart) {
       query.weekStart = getWeekStart(filters.weekStart);
+    }
+
+    if (filters.from && filters.to) {
+      query.startAt = { $gte: filters.from, $lte: filters.to };
     }
 
     if (filters.date) {

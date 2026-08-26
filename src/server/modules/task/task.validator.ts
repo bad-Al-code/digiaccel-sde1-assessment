@@ -85,6 +85,8 @@ export const listTasksQuerySchema = z
   .object({
     weekStart: isoDate.optional(),
     date: isoDate.optional(),
+    from: isoDateTime.optional(),
+    to: isoDateTime.optional(),
     status: statusSchema.optional(),
     priority: z.enum(TASK_PRIORITY_VALUES as [string, ...string[]]).optional(),
     ...paginationShape,
@@ -93,6 +95,18 @@ export const listTasksQuerySchema = z
   .refine((value) => !(value.weekStart && value.date), {
     message: 'Provide either weekStart or date, not both',
     path: ['date'],
+  })
+  .refine((value) => (value.from === undefined) === (value.to === undefined), {
+    message: 'Provide both from and to, or neither',
+    path: ['to'],
+  })
+  .refine((value) => !(value.from && (value.weekStart || value.date)), {
+    message: 'Provide either an explicit range or weekStart/date, not both',
+    path: ['from'],
+  })
+  .refine((value) => !value.from || !value.to || new Date(value.to) > new Date(value.from), {
+    message: 'to must be after from',
+    path: ['to'],
   });
 
 export const searchQuerySchema = z

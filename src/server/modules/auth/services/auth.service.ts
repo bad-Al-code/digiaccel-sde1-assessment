@@ -28,19 +28,49 @@ export class AuthService {
     private readonly tokenService: ITokenService,
   ) {}
 
-  public async register(input: RegisterInput): Promise<AuthResult> {
-    await this.assertEmailAvailable(input.email);
+  public async startGuestSession(fingerprintHash: string | null): Promise<AuthResult> {
+    const existing = fingerprintHash
+      ? await this.userRepository.findGuestByFingerprint(fingerprintHash)
+      : null;
 
-    const passwordHash = await this.passwordHasher.hash(input.password);
-    const user = await this.userRepository.create({
-      name: input.name,
-      email: input.email,
-      passwordHash,
-    });
+    const user =
+      existing ??
+      (await this.userRepository.createGuest({
+        name: 'Guest',
+        fingerprintHash,
+      }));
 
     const tokens = await this.issueSession(user.id);
 
     return { user, tokens };
+  }
+
+  public async register(input: RegisterInput, guestUserId?: string): Promise<AuthResult> {
+    await this.assertEmailAvailable(input.email);
+
+    const passwordHash = await this.passwordHasher.hash(input.password);
+    const credentials = { name: input.name, email: input.email, passwordHash };
+
+    const user = guestUserId
+      ? await this.claimGuestAccount(guestUserId, credentials)
+      : await this.userRepository.create(credentials);
+
+    const tokens = await this.issueSession(user.id);
+
+    return { user, tokens };
+  }
+
+  private async claimGuestAccount(
+    guestUserId: string,
+    credentials: { name: string; email: string; passwordHash: string },
+  ): Promise<User> {
+    try {
+      return await this.userRepository.promoteGuest(guestUserId, credentials);
+    } catch (error) {
+      if (error instanceof ConflictError) throw error;
+
+      return this.userRepository.create(credentials);
+    }
   }
 
   public async login(input: LoginInput): Promise<AuthResult> {
@@ -99,6 +129,16 @@ export class AuthService {
     }
   }
 
+  public async currentUserFromAccessToken(token: string): Promise<AuthenticatedUser | null> {
+    try {
+      const payload = this.tokenService.verifyAccessToken(token);
+
+      return await this.getCurrentUser(payload.sub);
+    } catch {
+      return null;
+    }
+  }
+
   public async getCurrentUser(userId: string): Promise<AuthenticatedUser> {
     const user = await this.userRepository.findById(userId);
 
@@ -106,7 +146,7 @@ export class AuthService {
       throw new UnauthorizedError('Session is no longer valid');
     }
 
-    return { id: user.id, email: user.email, name: user.name };
+    return { id: user.id, email: user.email, name: user.name, isGuest: user.isGuest };
   }
 
   private async assertEmailAvailable(email: string): Promise<void> {

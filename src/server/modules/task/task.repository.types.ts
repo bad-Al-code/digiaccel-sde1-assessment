@@ -15,6 +15,8 @@ export interface PaginatedTasks {
 export interface TaskListFilters {
   readonly weekStart?: Date;
   readonly date?: Date;
+  readonly from?: Date;
+  readonly to?: Date;
   readonly status?: TaskStatus;
   readonly priority?: TaskPriority;
 }
@@ -66,7 +68,14 @@ export interface ITaskRepository {
 
   delete(ownerId: string, taskId: string): Promise<boolean>;
 
+  countByOwner(ownerId: string): Promise<number>;
+
   countByStatus(ownerId: string, weekStart: Date): Promise<StatusCounts>;
 
   aggregateWeekSummaries(ownerId: string, range: DateRange, limit: number): Promise<WeekSummary[]>;
+}
+
+export interface IGuestQuota {
+  reserve(ownerId: string, maxTasks: number): Promise<boolean>;
+  release(ownerId: string): Promise<void>;
 }

@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 export const ACCESS_TOKEN_COOKIE = 'access_token';
 export const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
@@ -35,4 +37,8 @@ export function durationToSeconds(duration: string): number {
   }
 
   return Math.floor(amount * unit);
+}
+
+export function hashFingerprint(fingerprint: string): string {
+  return createHash('sha256').update(fingerprint.trim()).digest('hex');
 }

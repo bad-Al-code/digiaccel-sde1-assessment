@@ -32,10 +32,13 @@ export interface Task {
 export interface User {
   readonly id: string;
   readonly name: string;
-  readonly email: string;
+  readonly email: string | null;
+  readonly isGuest: boolean;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
+
+export const GUEST_TASK_LIMIT = 1;
 
 export interface WeekSummary {
   readonly weekStart: string;

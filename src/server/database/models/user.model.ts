@@ -3,9 +3,12 @@ import mongoose, { Schema, type HydratedDocument, type Model, type Types } from 
 export interface UserDocument {
   _id: Types.ObjectId;
   name: string;
-  email: string;
-  passwordHash: string;
+  email: string | null;
+  passwordHash: string | null;
   refreshTokenHash: string | null;
+  isGuest: boolean;
+  fingerprintHash: string | null;
+  guestTaskCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,18 +23,20 @@ const userSchema = new Schema<UserDocument>(
     name: { type: String, required: true, trim: true, minlength: 1, maxlength: 80 },
     email: {
       type: String,
-      required: true,
-      unique: true,
+      default: null,
       trim: true,
       lowercase: true,
       maxlength: MAX_EMAIL_LENGTH,
     },
     passwordHash: {
       type: String,
-      required: true,
+      default: null,
       select: false,
     },
     refreshTokenHash: { type: String, default: null, select: false },
+    isGuest: { type: Boolean, default: false, required: true },
+    fingerprintHash: { type: String, default: null, select: false },
+    guestTaskCount: { type: Number, default: 0, required: true },
   },
   {
     timestamps: true,
@@ -43,6 +48,8 @@ const userSchema = new Schema<UserDocument>(
         delete ret.__v;
         delete ret.passwordHash;
         delete ret.refreshTokenHash;
+        delete ret.fingerprintHash;
+        delete ret.guestTaskCount;
 
         return ret;
       },
@@ -50,7 +57,14 @@ const userSchema = new Schema<UserDocument>(
   },
 );
 
-userSchema.index({ email: 1 }, { unique: true });
+userSchema.index(
+  { email: 1 },
+  { unique: true, partialFilterExpression: { email: { $type: 'string' } } },
+);
+userSchema.index(
+  { fingerprintHash: 1 },
+  { partialFilterExpression: { fingerprintHash: { $type: 'string' } } },
+);
 
 export const UserModel: Model<UserDocument> =
   (mongoose.models.User as Model<UserDocument> | undefined) ??

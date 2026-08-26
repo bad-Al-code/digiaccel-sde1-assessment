@@ -34,3 +34,11 @@ export const loginSchema = z
 
 export type RegisterBody = z.infer<typeof registerSchema>;
 export type LoginBody = z.infer<typeof loginSchema>;
+
+export const guestSessionSchema = z
+  .object({
+    fingerprint: z.string().trim().min(8).max(128).optional(),
+  })
+  .strict();
+
+export type GuestSessionBody = z.infer<typeof guestSessionSchema>;

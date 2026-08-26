@@ -10,7 +10,18 @@ export interface UserWithPassword extends User {
   readonly passwordHash: string;
 }
 
+export interface CreateGuestInput {
+  readonly name: string;
+  readonly fingerprintHash: string | null;
+}
+
 export interface IUserRepository {
+  createGuest(input: CreateGuestInput): Promise<User>;
+
+  findGuestByFingerprint(fingerprintHash: string): Promise<User | null>;
+
+  promoteGuest(userId: string, input: CreateUserInput): Promise<User>;
+
   findById(userId: string): Promise<User | null>;
 
   findByEmail(email: string): Promise<User | null>;

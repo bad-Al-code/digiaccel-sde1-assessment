@@ -3,6 +3,7 @@ import { HttpStatus } from '@/server/core/http-status';
 import { TaskStatus, type Task, type TaskStatus as TaskStatusType } from '@/types';
 import type {
   CreateTaskInput,
+  IGuestQuota,
   ITaskRepository,
   PaginatedTasks,
   PaginationOptions,
@@ -19,12 +20,42 @@ export interface UpdateTaskPatch {
 }
 
 export class TaskService {
-  constructor(private readonly taskRepository: ITaskRepository) {}
+  constructor(
+    private readonly taskRepository: ITaskRepository,
+    private readonly guestQuota: IGuestQuota,
+  ) {}
 
-  public async createTask(ownerId: string, input: CreateTaskInput): Promise<Task> {
+  public async createTask(
+    ownerId: string,
+    input: CreateTaskInput,
+    limit?: { maxTasks: number },
+  ): Promise<Task> {
     this.assertValidWindow(input.startAt, input.endAt ?? null);
 
-    return this.taskRepository.create(ownerId, input);
+    if (!limit) {
+      return this.taskRepository.create(ownerId, input);
+    }
+
+    const reserved = await this.guestQuota.reserve(ownerId, limit.maxTasks);
+
+    if (!reserved) {
+      throw this.limitReached();
+    }
+
+    try {
+      return await this.taskRepository.create(ownerId, input);
+    } catch (error) {
+      await this.guestQuota.release(ownerId);
+      throw error;
+    }
+  }
+
+  private limitReached(): AppError {
+    return new AppError(
+      'Guests can create one task. Sign up to keep going.',
+      HttpStatus.FORBIDDEN,
+      'GUEST_TASK_LIMIT_REACHED',
+    );
   }
 
   public async getTask(ownerId: string, taskId: string): Promise<Task> {
@@ -82,11 +113,15 @@ export class TaskService {
     return updated;
   }
 
-  public async deleteTask(ownerId: string, taskId: string): Promise<void> {
+  public async deleteTask(ownerId: string, taskId: string, isGuest = false): Promise<void> {
     const deleted = await this.taskRepository.delete(ownerId, taskId);
 
     if (!deleted) {
       throw this.notFound();
+    }
+
+    if (isGuest) {
+      await this.guestQuota.release(ownerId);
     }
   }
 

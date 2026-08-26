@@ -1,7 +1,8 @@
 export interface AuthenticatedUser {
   readonly id: string;
-  readonly email: string;
+  readonly email: string | null;
   readonly name: string;
+  readonly isGuest: boolean;
 }
 
 export interface IPasswordHasher {
@@ -28,4 +29,8 @@ export interface ITokenService {
   issueTokenPair(userId: string): TokenPair;
   verifyAccessToken(token: string): TokenPayload;
   verifyRefreshToken(token: string): TokenPayload;
+}
+
+export interface ITaskCountReader {
+  countByOwner(ownerId: string): Promise<number>;
 }
