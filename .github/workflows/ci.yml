@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  quality:
+    name: Types, lint and formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017
+          MONGODB_DB_NAME: todo_app_build
+          JWT_ACCESS_SECRET: ${{ github.run_id }}-build-access-secret-padding-value
+          JWT_REFRESH_SECRET: ${{ github.run_id }}-build-refresh-secret-padding-value
+          APP_BASE_URL: http://localhost:3000
+
+  test:
+    name: Integration suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+    services:
+      mongodb:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ping:1}).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Create indexes
+        run: npm run db:sync-indexes
+        env:
+          SYNC_ENV_FILE: .env.ci
+          MONGODB_URI: mongodb://127.0.0.1:27017
+          MONGODB_DB_NAME: todo_app_test
+          JWT_ACCESS_SECRET: ${{ github.run_id }}-ci-access-secret-padding-value
+          JWT_REFRESH_SECRET: ${{ github.run_id }}-ci-refresh-secret-padding-value
+      - name: Run suites
+        run: npm test
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017
+          MONGODB_DB_NAME: todo_app_test
+          JWT_ACCESS_SECRET: ${{ github.run_id }}-ci-access-secret-padding-value
+          JWT_REFRESH_SECRET: ${{ github.run_id }}-ci-refresh-secret-padding-value
+          APP_BASE_URL: http://localhost:3000
