@@ -13,6 +13,7 @@ interface WeekCardProps {
   tasks: Task[];
   loadingTasks: boolean;
   onToggleTask: (task: Task) => void;
+  onEditTask: (task: Task) => void;
   onDeleteTask: (task: Task) => void;
 }
 
@@ -29,6 +30,7 @@ export function WeekCard({
   tasks,
   loadingTasks,
   onToggleTask,
+  onEditTask,
   onDeleteTask,
 }: WeekCardProps) {
   return (
@@ -70,7 +72,7 @@ export function WeekCard({
                 <TaskList
                   tasks={tasks}
                   onToggle={onToggleTask}
-                  onEdit={() => undefined}
+                  onEdit={onEditTask}
                   onDelete={onDeleteTask}
                 />
               )}

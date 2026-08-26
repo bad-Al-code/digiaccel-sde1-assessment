@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchTasks } from '@/client/queries/use-search-tasks';
-import { useDeleteTask, useToggleTaskStatus } from '@/client/queries/use-task-mutations';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { IconButton } from '@/components/ui/IconButton';
 import { BackIcon } from '@/components/ui/icons';
@@ -12,9 +11,11 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { TaskListSkeleton } from '@/components/ui/Skeleton';
 import { TaskList } from '@/components/task/TaskList';
-import { TaskStatus, type Task } from '@/types';
+import { TaskActionDialogs } from '@/components/task/TaskActionDialogs';
+import { useTaskActions } from '@/components/task/useTaskActions';
+import type { Task } from '@/types';
 
-export function SearchScreen() {
+export function SearchScreen({ isGuest }: { isGuest: boolean }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [term, setTerm] = useState('');
@@ -22,8 +23,7 @@ export function SearchScreen() {
 
   const results = useSearchTasks(debouncedTerm);
   const isSearching = term.trim().length > 0 && (term !== debouncedTerm || results.isFetching);
-  const toggleStatus = useToggleTaskStatus();
-  const deleteTask = useDeleteTask();
+  const actions = useTaskActions({ isGuest, defaultDate: new Date() });
 
   useEffect(() => {
     inputRef.current?.focus({ preventScroll: true });
@@ -58,15 +58,12 @@ export function SearchScreen() {
         isError={results.isError}
         tasks={results.data?.items ?? []}
         onRetry={() => void results.refetch()}
-        onToggle={(task) =>
-          toggleStatus.mutate({
-            taskId: task.id,
-            status:
-              task.status === TaskStatus.COMPLETED ? TaskStatus.IN_PROGRESS : TaskStatus.COMPLETED,
-          })
-        }
-        onDelete={(task) => deleteTask.mutate(task.id)}
+        onToggle={actions.toggle}
+        onEdit={actions.requestEdit}
+        onDelete={actions.requestDelete}
       />
+
+      <TaskActionDialogs actions={actions} />
     </div>
   );
 }
@@ -79,6 +76,7 @@ interface SearchResultsProps {
   tasks: Task[];
   onRetry: () => void;
   onToggle: (task: Task) => void;
+  onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
 }
 
@@ -90,6 +88,7 @@ function SearchResults({
   tasks,
   onRetry,
   onToggle,
+  onEdit,
   onDelete,
 }: SearchResultsProps) {
   if (term.length === 0) {
@@ -110,7 +109,7 @@ function SearchResults({
 
   return (
     <div className="px-6">
-      <TaskList tasks={tasks} onToggle={onToggle} onEdit={() => undefined} onDelete={onDelete} />
+      <TaskList tasks={tasks} onToggle={onToggle} onEdit={onEdit} onDelete={onDelete} />
     </div>
   );
 }
