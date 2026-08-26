@@ -11,7 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test:db && npm run test:auth && npm run test:guest && npm run test:tasks && npm run test:weeks && npm run test:search && npm run test:health",
+    "test": "npm run test:db && npm run test:auth && npm run test:guest && npm run test:tasks && npm run test:weeks && npm run test:search && npm run test:timezone && npm run test:health",
     "test:db": "tsx scripts/test-db-connection.ts",
     "test:auth": "tsx scripts/test-auth-flow.ts",
     "test:tasks": "tsx scripts/test-task-crud.ts",
@@ -19,7 +19,8 @@
     "test:search": "tsx scripts/test-search.ts",
     "test:health": "tsx scripts/test-health.ts",
     "test:guest": "tsx scripts/test-guest.ts",
-    "db:sync-indexes": "tsx scripts/sync-indexes.ts"
+    "db:sync-indexes": "tsx scripts/sync-indexes.ts",
+    "test:timezone": "tsx scripts/test-timezone.ts"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.2.0",
@@ -51,5 +52,8 @@
     "typescript": "^5"
   },
   "packageManager": "npm@11.19.0",
-  "description": "Weekly to-do list app - DigiAccel SDE-1 (MERN Stack) assignment"
+  "description": "Weekly to-do list app - DigiAccel SDE-1 (MERN Stack) assignment",
+  "engines": {
+    "node": ">=22"
+  }
 }
