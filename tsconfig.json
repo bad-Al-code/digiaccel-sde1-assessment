@@ -30,7 +30,8 @@
       "@/client/*": ["./src/client/*"],
       "@/components/*": ["./src/components/*"],
       "@/lib/*": ["./src/lib/*"],
-      "@/types/*": ["./src/types/*"]
+      "@/types/*": ["./src/types/*"],
+      "@/types": ["./src/types/index.ts"]
     }
   },
   "include": [
