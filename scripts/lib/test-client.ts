@@ -22,6 +22,18 @@ export class TestClient {
     return this.send<T>('POST', path, body, headers);
   }
 
+  public async patch<T = unknown>(
+    path: string,
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ) {
+    return this.send<T>('PATCH', path, body, headers);
+  }
+
+  public async delete<T = unknown>(path: string, headers: Record<string, string> = {}) {
+    return this.send<T>('DELETE', path, undefined, headers);
+  }
+
   public async postRaw<T = unknown>(
     path: string,
     raw: string,

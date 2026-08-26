@@ -6,7 +6,6 @@ import type { AuthResult, AuthService } from './services/auth.service';
 import type { SessionCookieStore } from './services/session-cookie-store';
 import type { LoginBody, RegisterBody } from './auth.validator';
 
-
 export class AuthController {
   constructor(
     private readonly authService: AuthService,

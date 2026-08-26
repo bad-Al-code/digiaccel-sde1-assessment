@@ -50,8 +50,7 @@ export function registerCleanupHooks(): void {
     try {
       await cleanupFixtures();
       await disconnectFixtures();
-    } catch {
-    }
+    } catch {}
   };
 
   process.once('SIGINT', () => {

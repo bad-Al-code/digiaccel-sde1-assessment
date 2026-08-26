@@ -5,7 +5,6 @@ export interface RunningServer {
   stop(): Promise<void>;
 }
 
-
 export async function startTestServer(dbName: string, port = 3311): Promise<RunningServer> {
   if (await isReachable(`http://localhost:${port}`)) {
     throw new Error(

@@ -77,7 +77,6 @@ export class JwtTokenService implements ITokenService {
     return { sub, type: expectedType };
   }
 
- 
   private toAuthError(error: unknown): UnauthorizedError {
     if (error instanceof jwt.TokenExpiredError) {
       return new UnauthorizedError('Session expired', 'SESSION_EXPIRED');

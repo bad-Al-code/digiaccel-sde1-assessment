@@ -21,7 +21,6 @@ export class BcryptPasswordHasher implements IPasswordHasher {
   public async burn(): Promise<void> {
     try {
       await bcrypt.compare('not-a-real-password', BcryptPasswordHasher.DUMMY_HASH);
-    } catch {
-    }
+    } catch {}
   }
 }
