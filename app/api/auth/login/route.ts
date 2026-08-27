@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 
 export const POST = createRouteHandler(
   { body: loginSchema, rateLimit: AUTH_ATTEMPTS },
-  async ({ body }) => {
+  async ({ request, body }) => {
     await database.connect();
 
-    return authController.login(body);
+    return authController.login(request, body);
   },
 );

@@ -2,7 +2,13 @@ import { createHash } from 'node:crypto';
 import { ConflictError, UnauthorizedError } from '@/server/core/app-error';
 import { logger } from '@/server/core/logger';
 import type { User } from '@/types';
-import type { AuthenticatedUser, IPasswordHasher, ITokenService, TokenPair } from '../auth.types';
+import type {
+  AuthenticatedUser,
+  IGuestTaskMigrator,
+  IPasswordHasher,
+  ITokenService,
+  TokenPair,
+} from '../auth.types';
 import type { IUserRepository } from '../user.repository.types';
 
 export interface RegisterInput {
@@ -26,6 +32,7 @@ export class AuthService {
     private readonly userRepository: IUserRepository,
     private readonly passwordHasher: IPasswordHasher,
     private readonly tokenService: ITokenService,
+    private readonly guestTasks: IGuestTaskMigrator,
   ) {}
 
   public async startGuestSession(fingerprintHash: string | null): Promise<AuthResult> {
@@ -73,7 +80,7 @@ export class AuthService {
     }
   }
 
-  public async login(input: LoginInput): Promise<AuthResult> {
+  public async login(input: LoginInput, guestUserId?: string): Promise<AuthResult> {
     const candidate = await this.userRepository.findByEmailWithPassword(input.email);
 
     if (!candidate) {
@@ -88,9 +95,31 @@ export class AuthService {
     }
 
     const { passwordHash: _passwordHash, ...user } = candidate;
+
+    if (guestUserId && guestUserId !== user.id) {
+      await this.absorbGuestTasks(guestUserId, user.id);
+    }
+
     const tokens = await this.issueSession(user.id);
 
     return { user, tokens };
+  }
+
+  /**
+   * A guest's tasks were created in this browser by this person, so signing in
+   * brings them along rather than stranding them on an abandoned guest row.
+   */
+  private async absorbGuestTasks(guestUserId: string, ownerId: string): Promise<void> {
+    const guest = await this.userRepository.findById(guestUserId);
+
+    if (!guest?.isGuest) {
+      return;
+    }
+
+    const moved = await this.guestTasks.migrate(guestUserId, ownerId);
+    await this.userRepository.deleteGuest(guestUserId);
+
+    logger.info('Absorbed guest tasks on sign in', { ownerId, moved });
   }
 
   public async refresh(refreshToken: string): Promise<AuthResult> {

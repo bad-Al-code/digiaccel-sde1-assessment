@@ -44,8 +44,9 @@ export class AuthController {
     return this.withSession(ApiResponse.created(result.user), result);
   }
 
-  public async login(body: LoginBody): Promise<NextResponse> {
-    const result = await this.authService.login(body);
+  public async login(request: NextRequest, body: LoginBody): Promise<NextResponse> {
+    const guestUserId = await this.resolveGuestUserId(request);
+    const result = await this.authService.login(body, guestUserId);
 
     return this.withSession(ApiResponse.ok(result.user), result);
   }

@@ -31,6 +31,10 @@ export interface ITokenService {
   verifyRefreshToken(token: string): TokenPayload;
 }
 
+export interface IGuestTaskMigrator {
+  migrate(fromOwnerId: string, toOwnerId: string): Promise<number>;
+}
+
 export interface ITaskCountReader {
   countByOwner(ownerId: string): Promise<number>;
 }
