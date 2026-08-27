@@ -15,8 +15,8 @@ export function GuestUpgradeDialog({ open, onClose }: GuestUpgradeDialogProps) {
     <ConfirmDialog
       open={open}
       title="Create a free account"
-      description="Guests can add one task. Sign up to add more, and the task you already created comes with you."
-      confirmLabel="Sign up"
+      description="Guests can add one task. Create an account or sign in to add more, and the task you just wrote is saved for you."
+      confirmLabel="Continue"
       cancelLabel="Not now"
       onConfirm={() => router.push('/auth?mode=signup')}
       onCancel={onClose}

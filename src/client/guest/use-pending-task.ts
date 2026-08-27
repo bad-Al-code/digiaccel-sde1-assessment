@@ -16,7 +16,9 @@ export function usePendingTaskRestore(enabled: boolean): void {
     if (!pending) return;
 
     attempted.current = true;
-    clearPendingTask();
-    createTask.mutate(pending);
+
+    createTask.mutate(pending, {
+      onSuccess: () => clearPendingTask(),
+    });
   }, [enabled, createTask]);
 }
