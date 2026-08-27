@@ -22,6 +22,8 @@ export interface IUserRepository {
 
   promoteGuest(userId: string, input: CreateUserInput): Promise<User>;
 
+  deleteGuest(userId: string): Promise<void>;
+
   findById(userId: string): Promise<User | null>;
 
   findByEmail(email: string): Promise<User | null>;

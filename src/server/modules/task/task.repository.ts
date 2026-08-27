@@ -128,6 +128,18 @@ export class TaskRepository extends BaseRepository<TaskDocument, Task> implement
     return (result.deletedCount ?? 0) > 0;
   }
 
+  public async reassignOwner(fromOwnerId: string, toOwnerId: string): Promise<number> {
+    if (!this.isValidObjectId(fromOwnerId) || !this.isValidObjectId(toOwnerId)) {
+      return 0;
+    }
+
+    const result = await this.model.updateMany(this.ownerFilter(fromOwnerId), {
+      $set: { ownerId: new Types.ObjectId(toOwnerId) },
+    });
+
+    return result.modifiedCount ?? 0;
+  }
+
   public async countByOwner(ownerId: string): Promise<number> {
     if (!this.isValidObjectId(ownerId)) {
       return 0;

@@ -109,6 +109,14 @@ export class UserRepository extends BaseRepository<UserDocument, User> implement
     return document ? this.toDomain(document) : null;
   }
 
+  public async deleteGuest(userId: string): Promise<void> {
+    if (!this.isValidObjectId(userId)) {
+      return;
+    }
+
+    await this.model.deleteOne({ _id: userId, isGuest: true });
+  }
+
   public async promoteGuest(userId: string, input: CreateUserInput): Promise<User> {
     try {
       const updated = await this.model

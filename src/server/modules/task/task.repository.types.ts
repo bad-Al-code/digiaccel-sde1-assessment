@@ -70,6 +70,8 @@ export interface ITaskRepository {
 
   countByOwner(ownerId: string): Promise<number>;
 
+  reassignOwner(fromOwnerId: string, toOwnerId: string): Promise<number>;
+
   countByStatus(ownerId: string, weekStart: Date): Promise<StatusCounts>;
 
   aggregateWeekSummaries(ownerId: string, range: DateRange, limit: number): Promise<WeekSummary[]>;
